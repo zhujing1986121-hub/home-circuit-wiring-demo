@@ -177,8 +177,7 @@ function drawBox(tripped){
   // 总开关（断路器）
   s += `<rect x="158" y="62" width="84" height="26" rx="8" fill="${tripped?'#3a2126':'#1c2739'}" stroke="${tripped?'#7a3a3a':'#3d5a7a'}" stroke-width="1.5"/>`;
   s += `<text x="200" y="80" text-anchor="middle" font-size="12" fill="#e8edf5">总开关</text>`;
-  s += `<circle cx="200" cy="104" r="4" fill="${tripped?'#ff5c5c':'#46c26a'}"/>`;
-  s += `<text x="200" y="112" text-anchor="middle" font-size="10" fill="${tripped?'#ff5c5c':'#46c26a'}" font-weight="700">${tripped?'断路器已跳闸':'正常闭合'}</text>`;
+  s += `<text x="200" y="108" text-anchor="middle" font-size="10" fill="${tripped?'#ff5c5c':'#46c26a'}" font-weight="700">${tripped?'断路器已跳闸':'正常闭合'}</text>`;
   // 三个接线端标签 + 端子点
   s += `<text x="90" y="130" text-anchor="middle" font-size="12" fill="${LIVE}">火线 L</text>`;
   s += `<text x="310" y="130" text-anchor="middle" font-size="12" fill="${NEU}">零线 N</text>`;
