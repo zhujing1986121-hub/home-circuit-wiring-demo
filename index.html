@@ -6,16 +6,18 @@
 <title>家庭电路接线 · 互动演示</title>
 <style>
   :root{
-    --live:#e53935;   /* 火线 红 */
-    --neutral:#1e88e5;/* 零线 蓝 */
-    --pe:#f0c33c;     /* 地线 黄绿 */
-    --ok:#2e9e5b;
-    --warn:#ef8f1d;
-    --bad:#e24b4b;
-    --bg:#eef2f7;
-    --card:#ffffff;
-    --ink:#26323d;
-    --muted:#7a8794;
+    --live:#ff4d4f;   /* 火线 红 */
+    --neutral:#4096ff;/* 零线 蓝 */
+    --pe:#f0c84a;     /* 地线 黄 */
+    --ok:#46c26a;
+    --warn:#ff9f45;
+    --bad:#ff5c5c;
+    --bg:#0d1117;
+    --card:#161d2b;
+    --ink:#e8edf5;
+    --muted:#93a1b5;
+    --line:#2a3444;
+    --accent:#3b82f6;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;}
@@ -27,7 +29,7 @@
   .wrap{max-width:480px;margin:0 auto;padding:0 12px;}
 
   header{padding:22px 16px 12px;text-align:center;}
-  header h1{font-size:22px;margin:0 0 6px;font-weight:700;}
+  header h1{font-size:22px;margin:0 0 6px;font-weight:700;color:#fff;}
   header p{margin:0;color:var(--muted);font-size:13px;}
 
   .tabs{
@@ -36,19 +38,20 @@
   }
   .tabs::-webkit-scrollbar{display:none;}
   .tab{
-    flex:0 0 auto;padding:9px 14px;border-radius:999px;background:#fff;
-    border:1px solid #dfe5ec;font-size:14px;color:var(--ink);cursor:pointer;
+    flex:0 0 auto;padding:9px 14px;border-radius:999px;background:#1a2332;
+    border:1px solid var(--line);font-size:14px;color:var(--ink);cursor:pointer;
     white-space:nowrap;transition:.15s;
   }
-  .tab.active{background:#2b3a4d;color:#fff;border-color:#2b3a4d;}
+  .tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
 
   .stage{
     background:var(--card);border-radius:16px;overflow:hidden;
-    box-shadow:0 6px 22px rgba(30,50,80,.08);margin-bottom:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.45);margin-bottom:14px;
+    border:1px solid var(--line);
   }
   .badge-row{display:flex;align-items:center;gap:8px;padding:12px 16px 0;}
   .badge{
-    font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;color:#fff;
+    font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;color:#0d1117;
   }
   .badge.ok{background:var(--ok);}
   .badge.warn{background:var(--warn);}
@@ -58,7 +61,7 @@
   svg{display:block;width:100%;height:auto;}
   svg text{font-family:inherit;}
 
-  .panel{padding:12px 16px 16px;border-top:1px dashed #e5eaf0;}
+  .panel{padding:12px 16px 16px;border-top:1px dashed var(--line);}
   .panel .reason{font-size:13.5px;margin:0 0 6px;}
   .panel .state{font-size:14px;font-weight:600;margin:0;}
   .state.ok{color:var(--ok);}
@@ -67,12 +70,12 @@
 
   .ctrl{padding:4px 0 0;display:flex;flex-direction:column;gap:8px;}
   button.main{
-    border:0;border-radius:12px;background:#2b3a4d;color:#fff;font-size:16px;
+    border:0;border-radius:12px;background:var(--accent);color:#fff;font-size:16px;
     font-weight:600;padding:14px;cursor:pointer;transition:.15s;
   }
   button.main:active{transform:scale(.98);}
-  button.main.off{background:var(--ok);}
-  button.main:disabled{background:#c6cfda;color:#fff;}
+  button.main.off{background:var(--ok);color:#07110b;}
+  button.main:disabled{background:var(--line);color:#7a8794;}
   .hint{font-size:12px;color:var(--muted);text-align:center;}
 
   .legend{
@@ -83,9 +86,9 @@
   .sw{width:22px;height:6px;border-radius:3px;display:inline-block;}
   .sw.live{background:var(--live);}
   .sw.neutral{background:var(--neutral);}
-  .sw.pe{background:linear-gradient(90deg,#f0c33c 50%,#43b649 50%);}
+  .sw.pe{background:linear-gradient(90deg,#f0c84a 50%,#46c26a 50%);}
 
-  footer{margin-top:18px;text-align:center;font-size:11px;color:#a6b0bb;}
+  footer{margin-top:18px;text-align:center;font-size:11px;color:#5a6474;}
 
   @keyframes dash{to{stroke-dashoffset:-24;}}
   @keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
@@ -129,7 +132,7 @@
 </div>
 
 <script>
-const LIVE='#e53935', NEU='#1e88e5', PE='#f0c33c', MUT='#9aa4af';
+const LIVE='#ff4d4f', NEU='#4096ff', PE='#f0c84a', MUT='#93a1b5';
 
 // 每种「接线方案 / 场景」的元数据
 const SCENARIOS = [
@@ -169,20 +172,20 @@ function dot(x,y,color,r=4){
 // 配电箱
 function drawBox(tripped){
   let s = '';
-  s += `<rect x="16" y="24" width="368" height="120" rx="12" fill="#fbfcfe" stroke="#cbd4de" stroke-width="2"/>`;
-  s += `<text x="200" y="44" text-anchor="middle" font-size="16" font-weight="700" fill="#2b3a4d">配电箱</text>`;
+  s += `<rect x="16" y="24" width="368" height="120" rx="12" fill="#141b28" stroke="#3a4557" stroke-width="2"/>`;
+  s += `<text x="200" y="44" text-anchor="middle" font-size="16" font-weight="700" fill="#e8edf5">配电箱</text>`;
   // 总开关（断路器）
-  s += `<rect x="158" y="62" width="84" height="26" rx="8" fill="${tripped?'#fdecec':'#eef5ff'}" stroke="${tripped?'#e24b4b':'#c5d4ea'}" stroke-width="1.5"/>`;
-  s += `<text x="200" y="80" text-anchor="middle" font-size="12" fill="#2b3a4d">总开关</text>`;
-  s += `<circle cx="200" cy="104" r="4" fill="${tripped?'#e24b4b':'#2e9e5b'}"/>`;
-  s += `<text x="200" y="112" text-anchor="middle" font-size="10" fill="${tripped?'#e24b4b':'#2e9e5b'}" font-weight="700">${tripped?'断路器已跳闸':'正常闭合'}</text>`;
+  s += `<rect x="158" y="62" width="84" height="26" rx="8" fill="${tripped?'#3a2126':'#1c2739'}" stroke="${tripped?'#7a3a3a':'#3d5a7a'}" stroke-width="1.5"/>`;
+  s += `<text x="200" y="80" text-anchor="middle" font-size="12" fill="#e8edf5">总开关</text>`;
+  s += `<circle cx="200" cy="104" r="4" fill="${tripped?'#ff5c5c':'#46c26a'}"/>`;
+  s += `<text x="200" y="112" text-anchor="middle" font-size="10" fill="${tripped?'#ff5c5c':'#46c26a'}" font-weight="700">${tripped?'断路器已跳闸':'正常闭合'}</text>`;
   // 三个接线端标签 + 端子点
   s += `<text x="90" y="130" text-anchor="middle" font-size="12" fill="${LIVE}">火线 L</text>`;
   s += `<text x="310" y="130" text-anchor="middle" font-size="12" fill="${NEU}">零线 N</text>`;
-  s += `<text x="200" y="130" text-anchor="middle" font-size="12" fill="#a9892c">地线 PE</text>`;
+  s += `<text x="200" y="130" text-anchor="middle" font-size="12" fill="#e0c051">地线 PE</text>`;
   s += dot(90,144,LIVE,5);
   s += dot(310,144,NEU,5);
-  s += dot(200,144,'#f0c33c',5);
+  s += dot(200,144,PE,5);
   return s;
 }
 
@@ -190,32 +193,32 @@ function drawBox(tripped){
 function drawWallSwitch(on, x, y, w, h){
   const cx = x + w/2, cy = y + h/2;
   let s = '';
-  s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="#f7f8fa" stroke="#aeb8c2" stroke-width="2" class="hit" data-action="toggle" style="cursor:pointer;"/>`;
+  s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="#141b28" stroke="#4a5568" stroke-width="2" class="hit" data-action="toggle" style="cursor:pointer;"/>`;
   // 上下两个端子（接点）
-  s += dot(cx, y, '#5b6b7b', 4);
-  s += dot(cx, y+h, '#5b6b7b', 4);
+  s += dot(cx, y, '#8b98a5', 4);
+  s += dot(cx, y+h, '#8b98a5', 4);
   // 刀闸：闭合=垂直导通；断开=刀片上翻
   if(on){
-    s += `<line x1="${cx}" y1="${y}" x2="${cx}" y2="${y+h}" stroke="#2b3a4d" stroke-width="4" stroke-linecap="round"/>`;
+    s += `<line x1="${cx}" y1="${y}" x2="${cx}" y2="${y+h}" stroke="#dce3ec" stroke-width="4" stroke-linecap="round"/>`;
   } else {
-    s += `<line x1="${cx}" y1="${y}" x2="${cx+16}" y2="${y+h*0.8}" stroke="#2b3a4d" stroke-width="4" stroke-linecap="round"/>`;
+    s += `<line x1="${cx}" y1="${y}" x2="${cx+16}" y2="${y+h*0.8}" stroke="#dce3ec" stroke-width="4" stroke-linecap="round"/>`;
   }
-  s += `<text x="${x-10}" y="${cy+4}" text-anchor="end" font-size="12" fill="#5b6b7b">开关</text>`;
+  s += `<text x="${x-10}" y="${cy+4}" text-anchor="end" font-size="12" fill="#8b98a5">开关</text>`;
   return s;
 }
 
 // 智能面板
 function drawSmartPanel(powered, missingN){
   let s = '';
-  s += `<rect x="130" y="230" width="140" height="110" rx="12" fill="#f7f8fa" stroke="#aeb8c2" stroke-width="2" class="hit" data-action="toggle" style="cursor:pointer;"/>`;
-  s += `<text x="200" y="252" text-anchor="middle" font-size="13" font-weight="700" fill="#2b3a4d">智能面板</text>`;
+  s += `<rect x="130" y="230" width="140" height="110" rx="12" fill="#141b28" stroke="#4a5568" stroke-width="2" class="hit" data-action="toggle" style="cursor:pointer;"/>`;
+  s += `<text x="200" y="252" text-anchor="middle" font-size="13" font-weight="700" fill="#e8edf5">智能面板</text>`;
   // 触摸按钮
-  s += `<circle cx="200" cy="284" r="15" fill="${powered?'#4fc36a':'#e0e5ea'}" stroke="${powered?'#2e9e5b':'#b6bfc9'}" stroke-width="2"/>`;
-  if(powered){ s += `<text x="200" y="288" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">开</text>`; }
-  else { s += `<text x="200" y="288" text-anchor="middle" font-size="9" fill="#8a95a1">无电</text>`; }
+  s += `<circle cx="200" cy="284" r="15" fill="${powered?'#46c26a':'#263041'}" stroke="${powered?'#46c26a':'#4a5568'}" stroke-width="2"/>`;
+  if(powered){ s += `<text x="200" y="288" text-anchor="middle" font-size="11" fill="#07110b" font-weight="700">开</text>`; }
+  else { s += `<text x="200" y="288" text-anchor="middle" font-size="9" fill="#7f8ea3">无电</text>`; }
   // 状态灯
-  s += `<circle cx="200" cy="318" r="4" fill="${powered?'#2e9e5b':'#e24b4b'}"/>`;
-  s += `<text x="212" y="322" font-size="10" fill="${powered?'#2e9e5b':'#e24b4b'}">${powered?'已通电':'未通电'}</text>`;
+  s += `<circle cx="200" cy="318" r="4" fill="${powered?'#46c26a':'#ff5c5c'}"/>`;
+  s += `<text x="212" y="322" font-size="10" fill="${powered?'#46c26a':'#ff5c5c'}">${powered?'已通电':'未通电'}</text>`;
   // 四个端子
   s += dot(170,230,LIVE,4); s += dot(230,230,NEU,4);
   s += dot(170,340,LIVE,4); s += dot(230,340,NEU,4);
@@ -225,9 +228,9 @@ function drawSmartPanel(powered, missingN){
   s += `<text x="242" y="356" text-anchor="start" font-size="11" fill="${NEU}">零 N</text>`;
   if(missingN){
     // 缺零线标记
-    s += `<line x1="222" y1="204" x2="238" y2="220" stroke="#e24b4b" stroke-width="3" stroke-linecap="round"/>`;
-    s += `<line x1="238" y1="204" x2="222" y2="220" stroke="#e24b4b" stroke-width="3" stroke-linecap="round"/>`;
-    s += `<text x="272" y="178" font-size="11" fill="#e24b4b" font-weight="700">缺零线！</text>`;
+    s += `<line x1="222" y1="204" x2="238" y2="220" stroke="#ff5c5c" stroke-width="3" stroke-linecap="round"/>`;
+    s += `<line x1="238" y1="204" x2="222" y2="220" stroke="#ff5c5c" stroke-width="3" stroke-linecap="round"/>`;
+    s += `<text x="272" y="178" font-size="11" fill="#ff5c5c" font-weight="700">缺零线！</text>`;
   }
   return s;
 }
@@ -236,35 +239,35 @@ function drawSmartPanel(powered, missingN){
 function drawBulb(on, showLeads){
   let s = '';
   if(showLeads){
-    s += `<line x1="155" y1="495" x2="165" y2="495" stroke="#6b7683" stroke-width="4"/>`;
-    s += `<line x1="245" y1="495" x2="235" y2="495" stroke="#6b7683" stroke-width="4"/>`;
+    s += `<line x1="155" y1="495" x2="165" y2="495" stroke="#7f8ea3" stroke-width="4"/>`;
+    s += `<line x1="245" y1="495" x2="235" y2="495" stroke="#7f8ea3" stroke-width="4"/>`;
   }
-  // 发光光晕
+  // 发光光晕（开灯时更亮更白）
   if(on){
-    s += `<defs><radialGradient id="glow"><stop offset="0%" stop-color="rgba(255,214,90,.65)"/><stop offset="100%" stop-color="rgba(255,214,90,0)"/></radialGradient></defs>`;
-    s += `<circle cx="200" cy="495" r="78" fill="url(#glow)"/>`;
+    s += `<defs><radialGradient id="glow"><stop offset="0%" stop-color="rgba(255,232,150,.85)"/><stop offset="45%" stop-color="rgba(255,232,150,.35)"/><stop offset="100%" stop-color="rgba(255,232,150,0)"/></radialGradient></defs>`;
+    s += `<circle cx="200" cy="495" r="92" fill="url(#glow)"/>`;
   }
-  // 玻璃泡
-  s += `<circle cx="200" cy="495" r="38" fill="${on?'#fff3c4':'#eceff2'}" stroke="#9aa4af" stroke-width="2.5"/>`;
+  // 玻璃泡（开灯→亮白）
+  s += `<circle cx="200" cy="495" r="38" fill="${on?'#ffffff':'#26313f'}" stroke="${on?'#ffc857':'#5a6b80'}" stroke-width="2.5"/>`;
   // 灯丝
-  const fc = on ? '#ff9d1f' : '#b9c2cb';
+  const fc = on ? '#ffa724' : '#55636f';
   s += `<polyline points="186,482 200,506 214,482" fill="none" stroke="${fc}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
-  s += `<line x1="188" y1="514" x2="212" y2="514" stroke="#9aa4af" stroke-width="2.5"/>`;
-  s += `<text x="200" y="558" text-anchor="middle" font-size="13" fill="#5b6b7b">灯具</text>`;
+  s += `<line x1="188" y1="514" x2="212" y2="514" stroke="#5a6b80" stroke-width="2.5"/>`;
+  s += `<text x="200" y="558" text-anchor="middle" font-size="13" fill="#93a1b5">灯具</text>`;
   return s;
 }
 
 // 短路火花
 function drawSpark(x,y){
   let s = '';
-  s += `<circle cx="${x}" cy="${y}" r="16" fill="rgba(255,89,46,.15)"/>`;
+  s += `<circle cx="${x}" cy="${y}" r="16" fill="rgba(255,110,60,.18)"/>`;
   for(let i=0;i<8;i++){
     const a = i*45*Math.PI/180;
     const x1 = x + Math.cos(a)*8, y1 = y + Math.sin(a)*8;
     const x2 = x + Math.cos(a)*20, y2 = y + Math.sin(a)*20;
-    s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#ff782d" stroke-width="3" stroke-linecap="round" class="blink"/>`;
+    s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#ff8a3d" stroke-width="3" stroke-linecap="round" class="blink"/>`;
   }
-  s += `<text x="${x}" y="${y-30}" text-anchor="middle" font-size="15" font-weight="700" fill="#e24b4b" class="blink">短路！</text>`;
+  s += `<text x="${x}" y="${y-30}" text-anchor="middle" font-size="15" font-weight="700" fill="#ff5c5c" class="blink">短路！</text>`;
   return s;
 }
 
@@ -313,7 +316,7 @@ function render(){
   wires.forEach(w=>{
     const active = (w.f==='always') || (w.f==='on' && on);
     if(active){
-      svg += poly(w.pts, 'rgba(255,255,255,.92)', 4, 'flow');
+      svg += poly(w.pts, 'rgba(255,255,255,.98)', 4, 'flow');
     }
   });
 
@@ -335,7 +338,7 @@ function render(){
 
   // 场景 B：灯灭但灯座带电的隐患标注
   if(sc.id==='B' && !on){
-    svg += `<text x="200" y="446" text-anchor="middle" font-size="12" font-weight="700" fill="#ef8f1d">换灯泡有触电风险！</text>`;
+    svg += `<text x="200" y="446" text-anchor="middle" font-size="12" font-weight="700" fill="#ff9f45">换灯泡有触电风险！</text>`;
   }
 
   document.getElementById('diagram').innerHTML = svg;
