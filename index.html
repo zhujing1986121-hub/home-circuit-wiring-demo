@@ -175,7 +175,7 @@ function drawBox(tripped){
   s += `<rect x="158" y="62" width="84" height="26" rx="8" fill="${tripped?'#fdecec':'#eef5ff'}" stroke="${tripped?'#e24b4b':'#c5d4ea'}" stroke-width="1.5"/>`;
   s += `<text x="200" y="80" text-anchor="middle" font-size="12" fill="#2b3a4d">总开关</text>`;
   s += `<circle cx="200" cy="104" r="4" fill="${tripped?'#e24b4b':'#2e9e5b'}"/>`;
-  s += `<text x="200" y="120" text-anchor="middle" font-size="10" fill="${tripped?'#e24b4b':'#2e9e5b'}" font-weight="700">${tripped?'断路器已跳闸':'正常闭合'}</text>`;
+  s += `<text x="200" y="112" text-anchor="middle" font-size="10" fill="${tripped?'#e24b4b':'#2e9e5b'}" font-weight="700">${tripped?'断路器已跳闸':'正常闭合'}</text>`;
   // 三个接线端标签 + 端子点
   s += `<text x="90" y="130" text-anchor="middle" font-size="12" fill="${LIVE}">火线 L</text>`;
   s += `<text x="310" y="130" text-anchor="middle" font-size="12" fill="${NEU}">零线 N</text>`;
@@ -200,7 +200,7 @@ function drawWallSwitch(on, x, y, w, h){
   } else {
     s += `<line x1="${cx}" y1="${y}" x2="${cx+16}" y2="${y+h*0.8}" stroke="#2b3a4d" stroke-width="4" stroke-linecap="round"/>`;
   }
-  s += `<text x="${cx}" y="${y+h+22}" text-anchor="middle" font-size="12" fill="#5b6b7b">开关</text>`;
+  s += `<text x="${x-10}" y="${cy+4}" text-anchor="end" font-size="12" fill="#5b6b7b">开关</text>`;
   return s;
 }
 
@@ -219,15 +219,15 @@ function drawSmartPanel(powered, missingN){
   // 四个端子
   s += dot(170,230,LIVE,4); s += dot(230,230,NEU,4);
   s += dot(170,340,LIVE,4); s += dot(230,340,NEU,4);
-  s += `<text x="124" y="234" text-anchor="end" font-size="11" fill="${LIVE}">火进 L</text>`;
-  s += `<text x="230" y="222" text-anchor="middle" font-size="11" fill="${NEU}">零进 N</text>`;
-  s += `<text x="124" y="344" text-anchor="end" font-size="11" fill="${LIVE}">灯控 L1</text>`;
-  s += `<text x="230" y="358" text-anchor="middle" font-size="11" fill="${NEU}">零 N</text>`;
+  s += `<text x="130" y="185" text-anchor="middle" font-size="11" fill="${LIVE}">火进 L</text>`;
+  s += `<text x="270" y="185" text-anchor="middle" font-size="11" fill="${NEU}">零进 N</text>`;
+  s += `<text x="158" y="356" text-anchor="end" font-size="11" fill="${LIVE}">灯控 L1</text>`;
+  s += `<text x="242" y="356" text-anchor="start" font-size="11" fill="${NEU}">零 N</text>`;
   if(missingN){
     // 缺零线标记
     s += `<line x1="222" y1="204" x2="238" y2="220" stroke="#e24b4b" stroke-width="3" stroke-linecap="round"/>`;
     s += `<line x1="238" y1="204" x2="222" y2="220" stroke="#e24b4b" stroke-width="3" stroke-linecap="round"/>`;
-    s += `<text x="268" y="196" font-size="11" fill="#e24b4b" font-weight="700">缺零线！</text>`;
+    s += `<text x="272" y="178" font-size="11" fill="#e24b4b" font-weight="700">缺零线！</text>`;
   }
   return s;
 }
@@ -335,7 +335,7 @@ function render(){
 
   // 场景 B：灯灭但灯座带电的隐患标注
   if(sc.id==='B' && !on){
-    svg += `<text x="200" y="470" text-anchor="middle" font-size="12" font-weight="700" fill="#ef8f1d">换灯泡有触电风险！</text>`;
+    svg += `<text x="200" y="446" text-anchor="middle" font-size="12" font-weight="700" fill="#ef8f1d">换灯泡有触电风险！</text>`;
   }
 
   document.getElementById('diagram').innerHTML = svg;
