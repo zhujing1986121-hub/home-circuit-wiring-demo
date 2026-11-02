@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>家庭电路接线 · 互动演示</title>
+<style>
+  :root{
+    --live:#e53935;   /* 火线 红 */
+    --neutral:#1e88e5;/* 零线 蓝 */
+    --pe:#f0c33c;     /* 地线 黄绿 */
+    --ok:#2e9e5b;
+    --warn:#ef8f1d;
+    --bad:#e24b4b;
+    --bg:#eef2f7;
+    --card:#ffffff;
+    --ink:#26323d;
+    --muted:#7a8794;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--ink);
+    line-height:1.6; padding:0 0 40px;
+  }
+  .wrap{max-width:480px;margin:0 auto;padding:0 12px;}
+
+  header{padding:22px 16px 12px;text-align:center;}
+  header h1{font-size:22px;margin:0 0 6px;font-weight:700;}
+  header p{margin:0;color:var(--muted);font-size:13px;}
+
+  .tabs{
+    display:flex;gap:8px;overflow-x:auto;padding:4px 4px 10px;
+    scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  }
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{
+    flex:0 0 auto;padding:9px 14px;border-radius:999px;background:#fff;
+    border:1px solid #dfe5ec;font-size:14px;color:var(--ink);cursor:pointer;
+    white-space:nowrap;transition:.15s;
+  }
+  .tab.active{background:#2b3a4d;color:#fff;border-color:#2b3a4d;}
+
+  .stage{
+    background:var(--card);border-radius:16px;overflow:hidden;
+    box-shadow:0 6px 22px rgba(30,50,80,.08);margin-bottom:14px;
+  }
+  .badge-row{display:flex;align-items:center;gap:8px;padding:12px 16px 0;}
+  .badge{
+    font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;color:#fff;
+  }
+  .badge.ok{background:var(--ok);}
+  .badge.warn{background:var(--warn);}
+  .badge.bad{background:var(--bad);}
+  .badge-row .sub{font-size:12px;color:var(--muted);}
+
+  svg{display:block;width:100%;height:auto;}
+  svg text{font-family:inherit;}
+
+  .panel{padding:12px 16px 16px;border-top:1px dashed #e5eaf0;}
+  .panel .reason{font-size:13.5px;margin:0 0 6px;}
+  .panel .state{font-size:14px;font-weight:600;margin:0;}
+  .state.ok{color:var(--ok);}
+  .state.warn{color:var(--warn);}
+  .state.bad{color:var(--bad);}
+
+  .ctrl{padding:4px 0 0;display:flex;flex-direction:column;gap:8px;}
+  button.main{
+    border:0;border-radius:12px;background:#2b3a4d;color:#fff;font-size:16px;
+    font-weight:600;padding:14px;cursor:pointer;transition:.15s;
+  }
+  button.main:active{transform:scale(.98);}
+  button.main.off{background:var(--ok);}
+  button.main:disabled{background:#c6cfda;color:#fff;}
+  .hint{font-size:12px;color:var(--muted);text-align:center;}
+
+  .legend{
+    display:flex;gap:10px;justify-content:center;margin-top:8px;font-size:12px;
+    flex-wrap:wrap;color:var(--muted);
+  }
+  .legend span{display:flex;align-items:center;gap:5px;}
+  .sw{width:22px;height:6px;border-radius:3px;display:inline-block;}
+  .sw.live{background:var(--live);}
+  .sw.neutral{background:var(--neutral);}
+  .sw.pe{background:linear-gradient(90deg,#f0c33c 50%,#43b649 50%);}
+
+  footer{margin-top:18px;text-align:center;font-size:11px;color:#a6b0bb;}
+
+  @keyframes dash{to{stroke-dashoffset:-24;}}
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
+  @keyframes pulse{0%,100%{r:46;}50%{r:52;}}
+  .flow{stroke-dasharray:5 19;animation:dash .9s linear infinite;stroke-linecap:round;pointer-events:none;}
+  .blink{animation:blink 0.9s steps(1) infinite;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>家庭电路接线演示</h1>
+    <p>火线 · 零线 · 开关 · 智能面板 · 灯具</p>
+  </header>
+
+  <nav class="tabs" id="tabs"></nav>
+
+  <div class="stage">
+    <div class="badge-row">
+      <span class="badge" id="badge"></span>
+      <span class="sub" id="sub"></span>
+    </div>
+    <svg id="diagram" viewBox="0 0 400 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="电路接线图"></svg>
+    <div class="panel">
+      <p class="reason" id="reason"></p>
+      <p class="state" id="state"></p>
+      <div class="ctrl">
+        <button class="main" id="mainBtn"></button>
+        <div class="hint">提示：点下方按钮，或直接点图中「开关 / 智能面板」试试</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><i class="sw live"></i>火线(L)</span>
+    <span><i class="sw neutral"></i>零线(N)</span>
+    <span><i class="sw pe"></i>地线(PE)</span>
+  </div>
+
+  <footer>演示仅供参考 · 实际接线请由持证电工操作</footer>
+</div>
+
+<script>
+const LIVE='#e53935', NEU='#1e88e5', PE='#f0c33c', MUT='#9aa4af';
+
+// 每种「接线方案 / 场景」的元数据
+const SCENARIOS = [
+  { id:'A', name:'普通开关 · 正确', tag:'正确', tagCls:'ok', sub:'开关控制火线 · 安全',
+    reason:'开关串接在「火线」上：断开开关后，灯具与火线完全脱离，换灯泡也不会触电，非常安全。',
+    onTxt:'开关闭合 → 灯亮，通电正常。', offTxt:'开关断开 → 灯灭，且灯具不带电，安全。',
+    control:'toggle', ctlOn:'关灯', ctlOff:'开灯' },
+  { id:'B', name:'普通开关 · 零线进开关', tag:'隐患', tagCls:'warn', sub:'能关灯，但灯座仍带电',
+    reason:'开关错接在「零线」上：虽然也能切断回路让灯熄灭，但火线仍直通灯具，灯座始终带电。',
+    onTxt:'开关闭合 → 灯亮（看似正常）。', offTxt:'开关断开 → 灯灭，但灯座仍带火线，换灯泡可能触电！',
+    control:'toggle', ctlOn:'关灯', ctlOff:'开灯' },
+  { id:'C', name:'智能面板 · 正确', tag:'正确', tagCls:'ok', sub:'火线＋零线给面板供电',
+    reason:'智能面板内部有芯片，需要「火线＋零线」构成回路才能工作；面板再输出灯控线到灯，零线同时送到灯。',
+    onTxt:'面板已通电（绿灯）→ 触摸开灯。', offTxt:'面板已通电（绿灯）→ 触摸关灯，面板待机正常。',
+    control:'toggle', ctlOn:'关灯', ctlOff:'开灯' },
+  { id:'D', name:'智能面板 · 缺零线', tag:'错误', tagCls:'bad', sub:'面板无法启动 · 不能控灯',
+    reason:'智能面板必须「火线＋零线」供电；缺少零线时内部没有回路，芯片不工作，面板不亮、按了没反应。',
+    onTxt:'面板未通电（红灯）→ 触摸无反应，灯一直不亮。', offTxt:'面板未通电（红灯）→ 触摸无反应，灯一直不亮。',
+    control:'dead' },
+  { id:'E', name:'火线零线短路', tag:'危险', tagCls:'bad', sub:'断路器跳闸 · 保护线路',
+    reason:'火线与零线直接短接会瞬间产生巨大电流，断路器立即跳闸切断电源，从而避免线路起火。',
+    onTxt:'短路！断路器已跳闸，灯不亮，切勿强行送电。', offTxt:'短路！断路器已跳闸，灯不亮，切勿强行送电。',
+    control:'dead' },
+];
+
+let state = { idx:0, on:false };
+
+// ---------- 绘图辅助 ----------
+function poly(pts,color,w,cls){
+  const p = pts.map(p=>p[0]+','+p[1]).join(' ');
+  return `<polyline points="${p}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${cls?' class="'+cls+'"':''}/>`;
+}
+function dot(x,y,color,r=4){
+  return `<circle cx="${x}" cy="${y}" r="${r}" fill="${color}"/>`;
+}
+
+// 配电箱
+function drawBox(tripped){
+  let s = '';
+  s += `<rect x="16" y="24" width="368" height="120" rx="12" fill="#fbfcfe" stroke="#cbd4de" stroke-width="2"/>`;
+  s += `<text x="200" y="44" text-anchor="middle" font-size="16" font-weight="700" fill="#2b3a4d">配电箱</text>`;
+  // 总开关（断路器）
+  s += `<rect x="158" y="62" width="84" height="26" rx="8" fill="${tripped?'#fdecec':'#eef5ff'}" stroke="${tripped?'#e24b4b':'#c5d4ea'}" stroke-width="1.5"/>`;
+  s += `<text x="200" y="80" text-anchor="middle" font-size="12" fill="#2b3a4d">总开关</text>`;
+  s += `<circle cx="200" cy="104" r="4" fill="${tripped?'#e24b4b':'#2e9e5b'}"/>`;
+  s += `<text x="200" y="120" text-anchor="middle" font-size="10" fill="${tripped?'#e24b4b':'#2e9e5b'}" font-weight="700">${tripped?'断路器已跳闸':'正常闭合'}</text>`;
+  // 三个接线端标签 + 端子点
+  s += `<text x="90" y="130" text-anchor="middle" font-size="12" fill="${LIVE}">火线 L</text>`;
+  s += `<text x="310" y="130" text-anchor="middle" font-size="12" fill="${NEU}">零线 N</text>`;
+  s += `<text x="200" y="130" text-anchor="middle" font-size="12" fill="#a9892c">地线 PE</text>`;
+  s += dot(90,144,LIVE,5);
+  s += dot(310,144,NEU,5);
+  s += dot(200,144,'#f0c33c',5);
+  return s;
+}
+
+// 普通墙壁开关（拨杆式）
+function drawWallSwitch(on, x, y, w, h){
+  const cx = x + w/2, cy = y + h/2;
+  let s = '';
+  s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="#f7f8fa" stroke="#aeb8c2" stroke-width="2" class="hit" data-action="toggle" style="cursor:pointer;"/>`;
+  // 上下两个端子（接点）
+  s += dot(cx, y, '#5b6b7b', 4);
+  s += dot(cx, y+h, '#5b6b7b', 4);
+  // 刀闸：闭合=垂直导通；断开=刀片上翻
+  if(on){
+    s += `<line x1="${cx}" y1="${y}" x2="${cx}" y2="${y+h}" stroke="#2b3a4d" stroke-width="4" stroke-linecap="round"/>`;
+  } else {
+    s += `<line x1="${cx}" y1="${y}" x2="${cx+16}" y2="${y+h*0.8}" stroke="#2b3a4d" stroke-width="4" stroke-linecap="round"/>`;
+  }
+  s += `<text x="${cx}" y="${y+h+22}" text-anchor="middle" font-size="12" fill="#5b6b7b">开关</text>`;
+  return s;
+}
+
+// 智能面板
+function drawSmartPanel(powered, missingN){
+  let s = '';
+  s += `<rect x="130" y="230" width="140" height="110" rx="12" fill="#f7f8fa" stroke="#aeb8c2" stroke-width="2" class="hit" data-action="toggle" style="cursor:pointer;"/>`;
+  s += `<text x="200" y="252" text-anchor="middle" font-size="13" font-weight="700" fill="#2b3a4d">智能面板</text>`;
+  // 触摸按钮
+  s += `<circle cx="200" cy="284" r="15" fill="${powered?'#4fc36a':'#e0e5ea'}" stroke="${powered?'#2e9e5b':'#b6bfc9'}" stroke-width="2"/>`;
+  if(powered){ s += `<text x="200" y="288" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">开</text>`; }
+  else { s += `<text x="200" y="288" text-anchor="middle" font-size="9" fill="#8a95a1">无电</text>`; }
+  // 状态灯
+  s += `<circle cx="200" cy="318" r="4" fill="${powered?'#2e9e5b':'#e24b4b'}"/>`;
+  s += `<text x="212" y="322" font-size="10" fill="${powered?'#2e9e5b':'#e24b4b'}">${powered?'已通电':'未通电'}</text>`;
+  // 四个端子
+  s += dot(170,230,LIVE,4); s += dot(230,230,NEU,4);
+  s += dot(170,340,LIVE,4); s += dot(230,340,NEU,4);
+  s += `<text x="124" y="234" text-anchor="end" font-size="11" fill="${LIVE}">火进 L</text>`;
+  s += `<text x="230" y="222" text-anchor="middle" font-size="11" fill="${NEU}">零进 N</text>`;
+  s += `<text x="124" y="344" text-anchor="end" font-size="11" fill="${LIVE}">灯控 L1</text>`;
+  s += `<text x="230" y="358" text-anchor="middle" font-size="11" fill="${NEU}">零 N</text>`;
+  if(missingN){
+    // 缺零线标记
+    s += `<line x1="222" y1="204" x2="238" y2="220" stroke="#e24b4b" stroke-width="3" stroke-linecap="round"/>`;
+    s += `<line x1="238" y1="204" x2="222" y2="220" stroke="#e24b4b" stroke-width="3" stroke-linecap="round"/>`;
+    s += `<text x="268" y="196" font-size="11" fill="#e24b4b" font-weight="700">缺零线！</text>`;
+  }
+  return s;
+}
+
+// 灯泡
+function drawBulb(on, showLeads){
+  let s = '';
+  if(showLeads){
+    s += `<line x1="155" y1="495" x2="165" y2="495" stroke="#6b7683" stroke-width="4"/>`;
+    s += `<line x1="245" y1="495" x2="235" y2="495" stroke="#6b7683" stroke-width="4"/>`;
+  }
+  // 发光光晕
+  if(on){
+    s += `<defs><radialGradient id="glow"><stop offset="0%" stop-color="rgba(255,214,90,.65)"/><stop offset="100%" stop-color="rgba(255,214,90,0)"/></radialGradient></defs>`;
+    s += `<circle cx="200" cy="495" r="78" fill="url(#glow)"/>`;
+  }
+  // 玻璃泡
+  s += `<circle cx="200" cy="495" r="38" fill="${on?'#fff3c4':'#eceff2'}" stroke="#9aa4af" stroke-width="2.5"/>`;
+  // 灯丝
+  const fc = on ? '#ff9d1f' : '#b9c2cb';
+  s += `<polyline points="186,482 200,506 214,482" fill="none" stroke="${fc}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  s += `<line x1="188" y1="514" x2="212" y2="514" stroke="#9aa4af" stroke-width="2.5"/>`;
+  s += `<text x="200" y="558" text-anchor="middle" font-size="13" fill="#5b6b7b">灯具</text>`;
+  return s;
+}
+
+// 短路火花
+function drawSpark(x,y){
+  let s = '';
+  s += `<circle cx="${x}" cy="${y}" r="16" fill="rgba(255,89,46,.15)"/>`;
+  for(let i=0;i<8;i++){
+    const a = i*45*Math.PI/180;
+    const x1 = x + Math.cos(a)*8, y1 = y + Math.sin(a)*8;
+    const x2 = x + Math.cos(a)*20, y2 = y + Math.sin(a)*20;
+    s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#ff782d" stroke-width="3" stroke-linecap="round" class="blink"/>`;
+  }
+  s += `<text x="${x}" y="${y-30}" text-anchor="middle" font-size="15" font-weight="700" fill="#e24b4b" class="blink">短路！</text>`;
+  return s;
+}
+
+// 某场景的导线（含电流流向条件）
+function wiresFor(sc){
+  const A = [
+    {pts:[[90,144],[90,245]], c:LIVE, f:'on'},
+    {pts:[[90,305],[90,460],[155,460],[155,495]], c:LIVE, f:'on'},
+    {pts:[[310,144],[310,495],[245,495]], c:NEU, f:'on'},
+  ];
+  if(sc==='A') return A;
+  if(sc==='B') return [
+    {pts:[[90,144],[90,495],[155,495]], c:LIVE, f:'on'},
+    {pts:[[310,144],[310,245]], c:NEU, f:'on'},
+    {pts:[[310,305],[310,460],[245,460],[245,495]], c:NEU, f:'on'},
+  ];
+  if(sc==='C') return [
+    {pts:[[90,144],[90,190],[170,190],[170,230]], c:LIVE, f:'always'},
+    {pts:[[310,144],[310,190],[230,190],[230,230]], c:NEU, f:'always'},
+    {pts:[[170,340],[170,460],[155,460],[155,495]], c:LIVE, f:'on'},
+    {pts:[[230,340],[230,460],[245,460],[245,495]], c:NEU, f:'on'},
+  ];
+  if(sc==='D') return [
+    {pts:[[90,144],[90,190],[170,190],[170,230]], c:LIVE, f:'none'},
+    {pts:[[310,144],[310,495],[245,495]], c:NEU, f:'none'},
+    {pts:[[170,340],[170,460],[155,460],[155,495]], c:LIVE, f:'none'},
+  ];
+  if(sc==='E') return [
+    {pts:[[90,144],[90,280],[200,280]], c:LIVE, f:'none'},
+    {pts:[[310,144],[310,280],[200,280]], c:NEU, f:'none'},
+  ];
+  return [];
+}
+
+function render(){
+  const sc = SCENARIOS[state.idx];
+  const on = state.on;
+  const wires = wiresFor(sc.id);
+
+  let svg = drawBox(sc.id==='E');
+
+  // 导线
+  wires.forEach(w=>{ svg += poly(w.pts, w.c, 6); });
+
+  // 电流流动动画：on -> always/on；关灯态 -> 仅 always
+  wires.forEach(w=>{
+    const active = (w.f==='always') || (w.f==='on' && on);
+    if(active){
+      svg += poly(w.pts, 'rgba(255,255,255,.92)', 4, 'flow');
+    }
+  });
+
+  // 组件
+  if(sc.id==='A'){ svg += drawWallSwitch(on, 60, 245, 60, 60); }
+  if(sc.id==='B'){ svg += drawWallSwitch(on, 280, 245, 60, 60); }
+  if(sc.id==='C'){ svg += drawSmartPanel(true, false); }
+  if(sc.id==='D'){
+    svg += drawSmartPanel(false, true);
+    // 缺失的零线（本应接入面板）虚线提示
+    svg += poly([[310,144],[310,190],[230,190],[230,230]], '#e24b4b', 3, 'blink');
+  }
+  if(sc.id==='E'){ svg += drawSpark(200,280); }
+
+  // 灯泡
+  const bulbOn = on && (sc.id==='A' || sc.id==='B' || sc.id==='C');
+  const showLeads = sc.id!=='E';
+  svg += drawBulb(bulbOn, showLeads);
+
+  // 场景 B：灯灭但灯座带电的隐患标注
+  if(sc.id==='B' && !on){
+    svg += `<text x="200" y="470" text-anchor="middle" font-size="12" font-weight="700" fill="#ef8f1d">换灯泡有触电风险！</text>`;
+  }
+
+  document.getElementById('diagram').innerHTML = svg;
+
+  // 徽章与文案
+  const badge = document.getElementById('badge');
+  badge.textContent = sc.tag;
+  badge.className = 'badge ' + sc.tagCls;
+  document.getElementById('sub').textContent = sc.sub;
+  document.getElementById('reason').textContent = sc.reason;
+  const stateEl = document.getElementById('state');
+  stateEl.textContent = on ? sc.onTxt : sc.offTxt;
+  stateEl.className = 'state ' + (sc.tagCls==='ok' ? 'ok' : sc.tagCls==='warn' ? 'warn' : 'bad');
+
+  // 主按钮
+  const btn = document.getElementById('mainBtn');
+  if(sc.control==='toggle'){
+    btn.disabled = false;
+    btn.className = 'main ' + (on?'off':'');
+    btn.textContent = on ? sc.ctlOn : sc.ctlOff;
+  } else if(sc.control==='dead'){
+    btn.disabled = true;
+    btn.className = 'main';
+    btn.textContent = sc.id==='D' ? '面板未通电 · 无法控制' : '断路器已跳闸 · 无法操作';
+  }
+
+  // 绑定 SVG 内可点击元素
+  document.querySelectorAll('.hit').forEach(el=>{
+    el.onclick = ()=>{ if(SCENARIOS[state.idx].control==='toggle'){ state.on = !state.on; render(); } };
+  });
+}
+
+// 场景切换标签
+function renderTabs(){
+  const tabs = document.getElementById('tabs');
+  tabs.innerHTML = SCENARIOS.map((s,i)=>
+    `<div class="tab${i===state.idx?' active':''}" data-i="${i}">${s.name}</div>`
+  ).join('');
+  tabs.querySelectorAll('.tab').forEach(el=>{
+    el.onclick = ()=>{ state.idx = +el.dataset.i; state.on = false; renderTabs(); render(); };
+  });
+}
+
+document.getElementById('mainBtn').onclick = ()=>{
+  const sc = SCENARIOS[state.idx];
+  if(sc.control==='toggle'){ state.on = !state.on; render(); }
+};
+
+renderTabs();
+render();
+</script>
+</body>
+</html>
